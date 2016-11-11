@@ -9,4 +9,8 @@ Here are some basic information about our project -- xWIDL.
 
 * Paper([dl.acm.org](http://dl.acm.org/citation.cfm?doid=2984043.2998545), [pre-print](https://zhenzhang.me/papers/xwidl.pdf))
 * [Source code](https://github.com/xwidl)
+    - [xWIDL core module](https://github.com/xWIDL/xwidl-engine) in Haskell
+    - [Customized TAJS](https://github.com/xWIDL/TAJS)
+    - [Client-Server Interface Definitions](https://github.com/xWIDL/js-bridge)
+    - [Dafny Interface](https://github.com/xWIDL/dafny-bridge)
 * [Poster](https://zhenzhang.me/assets/xwidl-poster.pdf)
