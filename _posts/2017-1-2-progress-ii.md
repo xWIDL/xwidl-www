@@ -24,14 +24,52 @@ Consider some primitive instructions (NOTE: they are more abstract forms of `CFG
     - consider each of the *set* of abstract strings that `index` represents, we will do store for each of them
     - Now differentiate the *set* of abstract objects that `obj` represents into no-array and array ones, and for each of them, we will do corresponding store using `propStore` or `arrayIdxStore`.
 
-## OOP in SAFE
+## OO in SAFE
+JS is an prototype-based OO language. This is also crucial to our modeling.
+
+Let's consider some examples first.
+
+`var x = new ClsX();` will be compiled to SAFE intermediate repr (using `cfgBuild` flag):
+
+```
+<>fun<>1 := @ToObject(ClsX) @ #1
+<>arguments<>2 := allocArg(0) @ #2
+<>proto<>3 := <>fun<>1["prototype"]
+<>obj<>4 := alloc(<>proto<>3) @ #3
+construct(<>fun<>1, <>obj<>4, <>arguments<>2) @ #4
+```
+
+A more readable version is
+
+```
+fClsX       := @ToObject(ClsX)
+args        := allocArg(0)
+protoClsX   := fClsX.prototype
+obj         := alloc(protoClsX)
+
+construct(fClsX, obj, args)
+```
+
+Assuming you understand the prototype-based OO mechanism in JS, let's investigate into the following issues directly:
+
+- Where does `ClsX` exist? How to create it? (Since it looks global), how to load it into the default global environment?
+    - `@ToObject` is an internal API call (`IC`), whose expression argument will be first forwarded to e`V`aluate and then try to coerce it to `AbsObject`
+    - Since is a *function* object, we create it with `FuncModel`, which has a member called `protoModel` and a member called `construct`. We need to provide both
+    - To load it, just modify the value of `BuiltInGlobal` object
+- How is `prototype` created? How is it bound to the (constructor) function?
+    - Prototype is also an object, but with an emphasize on OO, we will consider how can its operations manipulate the `this` state. This is done by a `SystemAddr` representing the instance of such prototype. You might wonder, if that is true, then `this` will only be able to refer to a single set of all *actual* instances, rather than differentiating them according to the construction site. Well, by recency abstraction, there is actually a trade-off here between efficiency and precision.
 
 
 ## A new idea
 Now I am considering another dimension of design to solve the efficiency and state binding problem.
 
+There are several problems of the full SMT based solution
 
+1. Slow
+2. The state maintenance is hairy, albeit necessary to support a high level of expressivity
 
-## TODO in next issue
+However, some of the specification are *apparently* simple, which means that the state transformer underlying the specification can be directly encoded in static analyzer. In fact, by composing the abstract interpretations of operations, we can compose them without user's intervention.
 
-- Recency abstraction in SAFE
+Interestingly, we still need to do the *domain probing* when the expression might be too complex to invert, and need to fall back to the SMT solver when an abstract boolean evaluation can't work at all (consider `if ... then ... else`).
+
+Anyway, this is an interesting direction worth exploring.
